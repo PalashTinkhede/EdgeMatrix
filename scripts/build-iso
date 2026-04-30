@@ -1,0 +1,39 @@
+#!/bin/bash
+# DESC: Build the Harvester ISO
+set -e
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+echo "Start building ISO image"
+
+# Use local harvester-installer bundled inside the project directory.
+# Before running 'make build-iso', copy your local harvester-installer into this project:
+#   cp -r /path/to/harvester-installer ./harvester-installer
+LOCAL_INSTALLER_DIR="harvester-installer"
+
+if [ ! -d "${LOCAL_INSTALLER_DIR}" ]; then
+  echo "ERROR: ${LOCAL_INSTALLER_DIR} directory not found in project root."
+  echo "Please copy your local harvester-installer into the project directory first:"
+  echo "  cp -r /path/to/harvester-installer ./harvester-installer"
+  exit 1
+fi
+
+echo "Copying local harvester-installer from project directory"
+
+# Remove any previous copy to ensure a clean state
+rm -rf ../harvester-installer
+cp -r "${LOCAL_INSTALLER_DIR}" ../harvester-installer
+
+cd ../harvester-installer/scripts
+
+./ci
+
+cd ..
+HARVESTER_DIR=../harvester
+
+mkdir -p ${HARVESTER_DIR}/dist/artifacts
+cp dist/artifacts/* ${HARVESTER_DIR}/dist/artifacts
+cp -r dist/harvester-cluster-repo  ${HARVESTER_DIR}/dist
+
